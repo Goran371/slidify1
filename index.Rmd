@@ -1,0 +1,79 @@
+---
+title       : College admission predictor tool  
+subtitle    : December 21, 2014  
+author      : Karl Goran Strangmark   
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : [disqus]      # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+
+
+## Worrying about college admission?
+
+- Dreaming about being admitted to a top college but uncertain if you have a chance to be admitted?
+
+- Use this simple tool to figure out your chances to enter "Greedy College" next fall.
+
+- Greedy College is using big data with an eye on maximizing its endowment fund.
+
+- Use this super cool app and figure out your chances before you spend time and money on your application.
+
+---
+
+## How it works?
+
+- Go to https://goran371.shinyapps.io/devDataProdProj/ and fill in some information about yourself and your family.
+
+- Hit the "Go!" button and this awesome analytical tool will immediately return a prediction whether you have a chance to be admitted or not.
+
+---
+
+## The details
+
+- The most important information is the zip code. Please fill it in as a 4 or 5 digit number. You may try to hit Go! to see if the zip code alone takes you to Greedy College. For about 100 superzips Greedy will admit you without any other question.
+
+- If you don't live in a superzip, you many be able to qualify as a likely future wealthy and generous alumnus or alumna. You do that by answering the 2 questions about your family's current aggregate gross income (AGI)  and checking your father's alumnus status. Please use the value from the last taxation year (see below).
+```{r, echo=FALSE}
+x <- date(); substr(x,nchar(x)-3, nchar(x))
+```
+
+---
+
+## Superzips
+
+```{r echo=FALSE, results='asis'}
+suppressPackageStartupMessages(library(googleVis, slidify, slidifyLibraries))
+
+df <- read.csv("superzips100.csv", header=FALSE)
+names(df) <- "superzips"
+df$rank <- c(1:100)
+df$superzips <- as.factor(df$superzips)
+
+ZLL <- read.csv("zip to long-lat.csv")
+for(i in 1:100){
+    zip <- df[i,1]
+    ix <- match(zip,ZLL[,1])
+    df$latlong[i] <- paste(ZLL[ix,4], ZLL[ix,5], sep=":")
+    df$city[i] <- as.character(ZLL[ix, 2])
+    df$state[i] <- as.character(ZLL[ix, 3])
+}
+
+G3 <- gvisGeoMap(df, locationvar='latlong', numvar='rank', hovervar='city',
+                 options=list(region='US', height=350, 
+                              dataMode='markers',
+                              colors='[0xFF8747, 0xFFB581, 0xc06000]'))   
+#plot(G3)
+print(G3, tag='chart')
+
+```
+
+- Data compiled for Coming Apart: The State of White America, 1960-2010 by Charles Murray (Crown Forum, 2012).  
+- Excludes zip codes for post offices.  
+- Four-digit zip codes have an implied zero in front of them.  
+- Data from the 2000 census (meaning that income data are for calendar 1999)  
+
